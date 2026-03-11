@@ -87,7 +87,7 @@ class DashboardPage extends GetView<ScanController> {
               crossAxisSpacing: 12,
               mainAxisSpacing: 12,
               physics: const NeverScrollableScrollPhysics(),
-              childAspectRatio: 1.35,
+              childAspectRatio: 1,
               children: [
                 StatCard(
                   label: 'Images Analyzed',

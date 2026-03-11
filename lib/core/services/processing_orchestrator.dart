@@ -88,7 +88,9 @@ class ProcessingOrchestrator extends GetxService {
       ),
     );
 
-    final granted = await _permissionService.requestMediaAccess();
+    final granted = await _permissionService.requestMediaAccess(
+      allowUserSelectedFolderFallback: true,
+    );
     if (!granted) {
       _setJob(
         currentJob.value.copyWith(

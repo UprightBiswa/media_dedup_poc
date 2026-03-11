@@ -8,6 +8,7 @@ import 'package:media_dedup_poc/features/dedup/domain/models/similarity_edge.dar
 import 'package:media_dedup_poc/features/media_picker/data/services/media_source_service.dart';
 import 'package:media_dedup_poc/features/media_scan/data/repositories/media_repository.dart';
 import 'package:media_dedup_poc/features/media_scan/data/services/file_scan_service.dart';
+import 'package:media_dedup_poc/features/media_scan/data/services/thumbnail_cache_service.dart';
 import 'package:media_dedup_poc/features/media_scan/domain/models/media_item.dart';
 import 'package:media_dedup_poc/features/permissions/data/services/media_permission_service.dart';
 import 'package:media_dedup_poc/features/similarity/data/services/cluster_service.dart';
@@ -21,6 +22,7 @@ class ProcessingOrchestrator extends GetxService {
     required MediaPermissionService permissionService,
     required MediaSourceService mediaSourceService,
     required FileScanService fileScanService,
+    required ThumbnailCacheService thumbnailCacheService,
     required MediaRepository mediaRepository,
     required ProcessingJobRepository processingJobRepository,
     required HashService hashService,
@@ -31,6 +33,7 @@ class ProcessingOrchestrator extends GetxService {
         _permissionService = permissionService,
         _mediaSourceService = mediaSourceService,
         _fileScanService = fileScanService,
+        _thumbnailCacheService = thumbnailCacheService,
         _mediaRepository = mediaRepository,
         _processingJobRepository = processingJobRepository,
         _hashService = hashService,
@@ -42,6 +45,7 @@ class ProcessingOrchestrator extends GetxService {
   final MediaPermissionService _permissionService;
   final MediaSourceService _mediaSourceService;
   final FileScanService _fileScanService;
+  final ThumbnailCacheService _thumbnailCacheService;
   final MediaRepository _mediaRepository;
   final ProcessingJobRepository _processingJobRepository;
   final HashService _hashService;
@@ -136,20 +140,33 @@ class ProcessingOrchestrator extends GetxService {
         scanned,
         sourceRoot: selectedSource,
       );
+      final thumbnailReady = <MediaItem>[];
+      _setJob(
+        currentJob.value.copyWith(
+          stage: ProcessingStage.scanning,
+          progress: 0.2,
+          items: persistedScanned,
+          message: 'Generating cached thumbnails',
+        ),
+      );
+      for (final item in persistedScanned) {
+        thumbnailReady.add(await _thumbnailCacheService.ensureThumbnail(item));
+      }
+      await _mediaRepository.saveAnalysisResults(thumbnailReady);
       _setJob(
         currentJob.value.copyWith(
           stage: ProcessingStage.hashing,
           progress: 0.35,
-          items: persistedScanned,
+          items: thumbnailReady,
           message:
-              'Computing SHA-256 and perceptual hashes for ${persistedScanned.length} images',
+              'Computing SHA-256 and perceptual hashes for ${thumbnailReady.length} images',
         ),
       );
 
       final hashed = <MediaItem>[];
       final pendingHashes =
           await _mediaRepository.fetchPendingHashItems(selectedSource);
-      final reusableItems = persistedScanned
+      final reusableItems = thumbnailReady
           .where((item) => item.sha256.isNotEmpty)
           .toList(growable: false);
       for (final item in pendingHashes) {

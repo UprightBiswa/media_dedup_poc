@@ -7,6 +7,7 @@ import 'package:media_dedup_poc/features/dedup/data/services/hash_service.dart';
 import 'package:media_dedup_poc/features/media_picker/data/services/media_source_service.dart';
 import 'package:media_dedup_poc/features/media_scan/data/repositories/media_repository.dart';
 import 'package:media_dedup_poc/features/media_scan/data/services/file_scan_service.dart';
+import 'package:media_dedup_poc/features/media_scan/data/services/thumbnail_cache_service.dart';
 import 'package:media_dedup_poc/features/media_scan/presentation/controllers/scan_controller.dart';
 import 'package:media_dedup_poc/features/permissions/data/services/media_permission_service.dart';
 import 'package:media_dedup_poc/features/similarity/data/services/cluster_service.dart';
@@ -27,6 +28,7 @@ class InitialBinding extends Bindings {
       permanent: true,
     );
     Get.put(FileScanService(), permanent: true);
+    Get.put(ThumbnailCacheService(), permanent: true);
     Get.put(
       MediaRepository(Get.find<ObjectBoxService>()),
       permanent: true,
@@ -51,6 +53,7 @@ class InitialBinding extends Bindings {
         permissionService: Get.find<MediaPermissionService>(),
         mediaSourceService: Get.find<MediaSourceService>(),
         fileScanService: Get.find<FileScanService>(),
+        thumbnailCacheService: Get.find<ThumbnailCacheService>(),
         mediaRepository: Get.find<MediaRepository>(),
         processingJobRepository: Get.find<ProcessingJobRepository>(),
         hashService: Get.find<HashService>(),

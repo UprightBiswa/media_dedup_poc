@@ -15,6 +15,8 @@
 - Added persisted media index with `MediaItemEntity`.
 - Added persisted job snapshot with `ProcessingJobEntity`.
 - Added repository layer for scan persistence and simple incremental reuse.
+- Added thumbnail cache generation for scanned media.
+- Added visible cluster previews on the dashboard.
 - Added repository tracking files:
   - `PROJECT_STATUS.md`
   - `TODO.md`

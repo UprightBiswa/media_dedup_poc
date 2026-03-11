@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:media_dedup_poc/core/utils/formatters.dart';
 import 'package:media_dedup_poc/features/media_scan/presentation/controllers/scan_controller.dart';
+import 'package:media_dedup_poc/shared/widgets/media_thumbnail_tile.dart';
 import 'package:media_dedup_poc/shared/widgets/stat_card.dart';
 
 class DashboardPage extends GetView<ScanController> {
@@ -146,24 +147,63 @@ class DashboardPage extends GetView<ScanController> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          MediaThumbnailTile(
+                            item: cluster.representative,
+                            width: 110,
+                            height: 110,
+                            borderRadius: 20,
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
                       Text(
                         cluster.synthesisTitle,
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.w700,
                             ),
                       ),
-                      const SizedBox(height: 6),
-                      Text(cluster.synthesisSubtitle),
-                      const SizedBox(height: 12),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          Chip(label: Text(cluster.clusterType.name)),
-                          Chip(label: Text('${cluster.items.length} items')),
-                          Chip(label: Text('Avg score ${Formatters.percent(cluster.averageScore)}')),
-                          Chip(label: Text('Savings ${Formatters.bytes(cluster.reclaimableBytesEstimate)}')),
+                                const SizedBox(height: 6),
+                                Text(cluster.synthesisSubtitle),
+                                const SizedBox(height: 12),
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  children: [
+                                    Chip(label: Text(cluster.clusterType.name)),
+                                    Chip(label: Text('${cluster.items.length} items')),
+                                    Chip(
+                                      label: Text(
+                                        'Avg score ${Formatters.percent(cluster.averageScore)}',
+                                      ),
+                                    ),
+                                    Chip(
+                                      label: Text(
+                                        'Savings ${Formatters.bytes(cluster.reclaimableBytesEstimate)}',
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
                         ],
+                      ),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        height: 84,
+                        child: ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: cluster.items.length,
+                          separatorBuilder: (_, __) => const SizedBox(width: 8),
+                          itemBuilder: (context, index) {
+                            return MediaThumbnailTile(item: cluster.items[index]);
+                          },
+                        ),
                       ),
                       const SizedBox(height: 12),
                       Text(

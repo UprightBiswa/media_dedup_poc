@@ -21,6 +21,8 @@
 - Added `MediaItemEntity` and `ProcessingJobEntity`.
 - Added repositories for persisted media index and job snapshot state.
 - Persisted scan results and reuse of unchanged hashed/embedded items by content version key.
+- Added thumbnail cache generation during scan.
+- Added visible cluster previews with representative and item thumbnails.
 
 ## Current behavior
 - App opens.
@@ -28,6 +30,7 @@
 - Analyze runs through the current local prototype pipeline.
 - Similarity pipeline is still prototype-level:
   - file scan
+  - cached thumbnails
   - exact hash
   - dHash-like perceptual hash
   - heuristic embedding
@@ -48,4 +51,4 @@
 - Resume interrupted jobs
 
 ## Immediate next milestone
-- Finish Milestone 2: paginated scan/index flow, thumbnail cache, and persisted summary loading
+- Finish Milestone 2: persisted summary loading, removed-file cleanup, and paginated media indexing

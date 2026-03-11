@@ -5,6 +5,12 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+configurations {
+    named("debugImplementation") {
+        exclude(group = "io.objectbox", module = "objectbox-android")
+    }
+}
+
 android {
     namespace = "com.example.media_dedup_poc"
     compileSdk = flutter.compileSdkVersion
@@ -37,6 +43,10 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
     }
+}
+
+dependencies {
+    debugImplementation("io.objectbox:objectbox-android-objectbrowser:5.1.0")
 }
 
 flutter {

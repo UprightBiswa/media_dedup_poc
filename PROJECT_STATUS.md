@@ -1,7 +1,7 @@
 # Media Dedup POC Status
 
 ## Current milestone
-- Milestone 1 complete: app foundation, bindings, orchestrator, source picker, basic dashboard.
+- Milestone 2 in progress: local persistence and scan/index caching.
 
 ## Implemented so far
 - Created a separate Flutter project with Android/iOS/web/desktop folders.
@@ -16,6 +16,11 @@
 - Added app logger.
 - Added Android permission fallback for user-selected folder analysis.
 - Added Android manifest media/storage permissions.
+- Added ObjectBox local database initialization.
+- Added ObjectBox Admin startup for Android debug builds.
+- Added `MediaItemEntity` and `ProcessingJobEntity`.
+- Added repositories for persisted media index and job snapshot state.
+- Persisted scan results and reuse of unchanged hashed/embedded items by content version key.
 
 ## Current behavior
 - App opens.
@@ -43,4 +48,4 @@
 - Resume interrupted jobs
 
 ## Immediate next milestone
-- Milestone 2: local metadata persistence and paginated scan/index pipeline
+- Finish Milestone 2: paginated scan/index flow, thumbnail cache, and persisted summary loading

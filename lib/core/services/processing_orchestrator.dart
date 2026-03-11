@@ -1,8 +1,12 @@
+import 'dart:async';
+
 import 'package:get/get.dart';
+import 'package:media_dedup_poc/core/database/repositories/processing_job_repository.dart';
 import 'package:media_dedup_poc/core/logging/app_logger.dart';
 import 'package:media_dedup_poc/features/dedup/data/services/hash_service.dart';
 import 'package:media_dedup_poc/features/dedup/domain/models/similarity_edge.dart';
 import 'package:media_dedup_poc/features/media_picker/data/services/media_source_service.dart';
+import 'package:media_dedup_poc/features/media_scan/data/repositories/media_repository.dart';
 import 'package:media_dedup_poc/features/media_scan/data/services/file_scan_service.dart';
 import 'package:media_dedup_poc/features/media_scan/domain/models/media_item.dart';
 import 'package:media_dedup_poc/features/permissions/data/services/media_permission_service.dart';
@@ -17,6 +21,8 @@ class ProcessingOrchestrator extends GetxService {
     required MediaPermissionService permissionService,
     required MediaSourceService mediaSourceService,
     required FileScanService fileScanService,
+    required MediaRepository mediaRepository,
+    required ProcessingJobRepository processingJobRepository,
     required HashService hashService,
     required EmbeddingService embeddingService,
     required SimilarityService similarityService,
@@ -25,6 +31,8 @@ class ProcessingOrchestrator extends GetxService {
         _permissionService = permissionService,
         _mediaSourceService = mediaSourceService,
         _fileScanService = fileScanService,
+        _mediaRepository = mediaRepository,
+        _processingJobRepository = processingJobRepository,
         _hashService = hashService,
         _embeddingService = embeddingService,
         _similarityService = similarityService,
@@ -34,12 +42,24 @@ class ProcessingOrchestrator extends GetxService {
   final MediaPermissionService _permissionService;
   final MediaSourceService _mediaSourceService;
   final FileScanService _fileScanService;
+  final MediaRepository _mediaRepository;
+  final ProcessingJobRepository _processingJobRepository;
   final HashService _hashService;
   final EmbeddingService _embeddingService;
   final SimilarityService _similarityService;
   final ClusterService _clusterService;
 
   final Rx<ProcessingJob> currentJob = const ProcessingJob.initial().obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    unawaited(_restorePersistedJob());
+  }
+
+  Future<void> _restorePersistedJob() async {
+    currentJob.value = await _processingJobRepository.load();
+  }
 
   Future<void> selectFolder() async {
     _setJob(
@@ -112,19 +132,31 @@ class ProcessingOrchestrator extends GetxService {
       );
 
       final scanned = await _fileScanService.scanDirectory(selectedSource);
+      final persistedScanned = await _mediaRepository.upsertScannedItems(
+        scanned,
+        sourceRoot: selectedSource,
+      );
       _setJob(
         currentJob.value.copyWith(
           stage: ProcessingStage.hashing,
           progress: 0.35,
-          items: scanned,
-          message: 'Computing SHA-256 and perceptual hashes for ${scanned.length} images',
+          items: persistedScanned,
+          message:
+              'Computing SHA-256 and perceptual hashes for ${persistedScanned.length} images',
         ),
       );
 
       final hashed = <MediaItem>[];
-      for (final item in scanned) {
+      final pendingHashes =
+          await _mediaRepository.fetchPendingHashItems(selectedSource);
+      final reusableItems = persistedScanned
+          .where((item) => item.sha256.isNotEmpty)
+          .toList(growable: false);
+      for (final item in pendingHashes) {
         hashed.add(await _hashService.enrich(item));
       }
+      hashed.addAll(reusableItems);
+      await _mediaRepository.saveAnalysisResults(hashed);
 
       _setJob(
         currentJob.value.copyWith(
@@ -136,9 +168,16 @@ class ProcessingOrchestrator extends GetxService {
       );
 
       final embedded = <MediaItem>[];
-      for (final item in hashed) {
+      final pendingEmbeddings =
+          await _mediaRepository.fetchPendingEmbeddingItems(selectedSource);
+      final reusableEmbeddings = hashed
+          .where((item) => item.embedding.isNotEmpty)
+          .toList(growable: false);
+      for (final item in pendingEmbeddings) {
         embedded.add(await _embeddingService.enrich(item));
       }
+      embedded.addAll(reusableEmbeddings);
+      await _mediaRepository.saveAnalysisResults(embedded);
 
       _setJob(
         currentJob.value.copyWith(
@@ -193,5 +232,6 @@ class ProcessingOrchestrator extends GetxService {
 
   void _setJob(ProcessingJob job) {
     currentJob.value = job;
+    unawaited(_processingJobRepository.save(job));
   }
 }

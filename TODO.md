@@ -1,9 +1,11 @@
 # TODO
 
 ## Now
-- Build ObjectBox setup and entities for media items, embeddings, edges, clusters, and jobs.
-- Add repository layer for pending scan/hash/embedding work.
-- Replace direct folder scan flow with persisted scan job flow.
+- Add thumbnail generation and cached thumbnail path storage.
+- Add persisted dashboard summary loading from ObjectBox.
+- Extend entities for embeddings, similarity edges, and clusters.
+- Replace direct folder-only scan flow with persisted paginated media-source indexing.
+- Add cleanup for removed files in a rescanned source.
 - Add thumbnail generation and cached thumbnail path storage.
 
 ## Next

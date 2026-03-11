@@ -1,0 +1,165 @@
+{
+  "_note1": "KEEP THIS FILE! Check it into a version control system (VCS) like git.",
+  "_note2": "ObjectBox manages crucial IDs for your object model. See docs for details.",
+  "_note3": "If you have VCS merge conflicts, you must resolve them according to ObjectBox docs.",
+  "entities": [
+    {
+      "id": "1:1871724471495849408",
+      "lastPropertyId": "17:6872030586065759701",
+      "name": "MediaItemEntity",
+      "properties": [
+        {
+          "id": "1:7912872319080499120",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:8899341211315357374",
+          "name": "path",
+          "indexId": "1:231070403437001552",
+          "type": 9,
+          "flags": 2080
+        },
+        {
+          "id": "3:1731484136215277215",
+          "name": "fileName",
+          "type": 9
+        },
+        {
+          "id": "4:7750241892291661588",
+          "name": "mimeType",
+          "type": 9
+        },
+        {
+          "id": "5:6045148217430310894",
+          "name": "sizeBytes",
+          "type": 6
+        },
+        {
+          "id": "6:3450765257922563449",
+          "name": "width",
+          "type": 6
+        },
+        {
+          "id": "7:1985454646145909482",
+          "name": "height",
+          "type": 6
+        },
+        {
+          "id": "8:3321316346711059932",
+          "name": "createdAtEpochMs",
+          "type": 6
+        },
+        {
+          "id": "9:6300618404634522024",
+          "name": "modifiedAtEpochMs",
+          "type": 6
+        },
+        {
+          "id": "10:7295664149770634358",
+          "name": "contentVersionKey",
+          "type": 9
+        },
+        {
+          "id": "11:5102864900650167305",
+          "name": "analysisStatus",
+          "type": 9
+        },
+        {
+          "id": "12:4203226696221580702",
+          "name": "sha256",
+          "type": 9
+        },
+        {
+          "id": "13:8286564969043688500",
+          "name": "perceptualHashHex",
+          "type": 9
+        },
+        {
+          "id": "14:8061201723810220622",
+          "name": "embeddingJson",
+          "type": 9
+        },
+        {
+          "id": "15:7456806830928911432",
+          "name": "thumbnailPath",
+          "type": 9
+        },
+        {
+          "id": "16:3297350643913640041",
+          "name": "sourceRoot",
+          "type": 9
+        },
+        {
+          "id": "17:6872030586065759701",
+          "name": "lastScannedAtEpochMs",
+          "type": 6
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "2:7354469289138532160",
+      "lastPropertyId": "8:7437714620532884246",
+      "name": "ProcessingJobEntity",
+      "properties": [
+        {
+          "id": "1:5061937952334110185",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:2641523194133510347",
+          "name": "jobKey",
+          "indexId": "2:8364997570123008728",
+          "type": 9,
+          "flags": 2080
+        },
+        {
+          "id": "3:6373865595034901252",
+          "name": "stage",
+          "type": 9
+        },
+        {
+          "id": "4:8154803046008952700",
+          "name": "message",
+          "type": 9
+        },
+        {
+          "id": "5:4419301105279060844",
+          "name": "progress",
+          "type": 8
+        },
+        {
+          "id": "6:6641461534971078221",
+          "name": "selectedSource",
+          "type": 9
+        },
+        {
+          "id": "7:8395099639560539397",
+          "name": "failureReason",
+          "type": 9
+        },
+        {
+          "id": "8:7437714620532884246",
+          "name": "updatedAtEpochMs",
+          "type": 6
+        }
+      ],
+      "relations": []
+    }
+  ],
+  "lastEntityId": "2:7354469289138532160",
+  "lastIndexId": "2:8364997570123008728",
+  "lastRelationId": "0:0",
+  "lastSequenceId": "0:0",
+  "modelVersion": 5,
+  "modelVersionParserMinimum": 5,
+  "retiredEntityUids": [],
+  "retiredIndexUids": [],
+  "retiredPropertyUids": [],
+  "retiredRelationUids": [],
+  "version": 1
+}

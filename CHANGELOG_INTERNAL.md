@@ -10,6 +10,11 @@
 - Fixed Android folder-analysis permission flow by:
   - adding manifest permissions
   - allowing explicit user-selected folder analysis to continue on Android
+- Added ObjectBox 5.x setup and generated model/code.
+- Added ObjectBox Admin for Android debug builds.
+- Added persisted media index with `MediaItemEntity`.
+- Added persisted job snapshot with `ProcessingJobEntity`.
+- Added repository layer for scan persistence and simple incremental reuse.
 - Added repository tracking files:
   - `PROJECT_STATUS.md`
   - `TODO.md`

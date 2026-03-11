@@ -41,7 +41,7 @@ class EmbeddingService {
   }
 
   int _bucket(num channel) {
-    return ((channel ~/ 43).clamp(0, 5)) as int;
+    return (channel ~/ 43).clamp(0, 5);
   }
 
   double cosineSimilarity(List<double> a, List<double> b) {

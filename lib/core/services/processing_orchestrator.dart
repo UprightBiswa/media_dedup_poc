@@ -1,0 +1,195 @@
+import 'package:get/get.dart';
+import 'package:media_dedup_poc/core/logging/app_logger.dart';
+import 'package:media_dedup_poc/features/dedup/data/services/hash_service.dart';
+import 'package:media_dedup_poc/features/dedup/domain/models/similarity_edge.dart';
+import 'package:media_dedup_poc/features/media_picker/data/services/media_source_service.dart';
+import 'package:media_dedup_poc/features/media_scan/data/services/file_scan_service.dart';
+import 'package:media_dedup_poc/features/media_scan/domain/models/media_item.dart';
+import 'package:media_dedup_poc/features/permissions/data/services/media_permission_service.dart';
+import 'package:media_dedup_poc/features/similarity/data/services/cluster_service.dart';
+import 'package:media_dedup_poc/features/similarity/data/services/embedding_service.dart';
+import 'package:media_dedup_poc/features/similarity/data/services/similarity_service.dart';
+import 'package:media_dedup_poc/shared/models/processing_job.dart';
+
+class ProcessingOrchestrator extends GetxService {
+  ProcessingOrchestrator({
+    required AppLogger logger,
+    required MediaPermissionService permissionService,
+    required MediaSourceService mediaSourceService,
+    required FileScanService fileScanService,
+    required HashService hashService,
+    required EmbeddingService embeddingService,
+    required SimilarityService similarityService,
+    required ClusterService clusterService,
+  })  : _logger = logger,
+        _permissionService = permissionService,
+        _mediaSourceService = mediaSourceService,
+        _fileScanService = fileScanService,
+        _hashService = hashService,
+        _embeddingService = embeddingService,
+        _similarityService = similarityService,
+        _clusterService = clusterService;
+
+  final AppLogger _logger;
+  final MediaPermissionService _permissionService;
+  final MediaSourceService _mediaSourceService;
+  final FileScanService _fileScanService;
+  final HashService _hashService;
+  final EmbeddingService _embeddingService;
+  final SimilarityService _similarityService;
+  final ClusterService _clusterService;
+
+  final Rx<ProcessingJob> currentJob = const ProcessingJob.initial().obs;
+
+  Future<void> selectFolder() async {
+    _setJob(
+      currentJob.value.copyWith(
+        stage: ProcessingStage.selectingSource,
+        message: 'Waiting for folder selection',
+        clearFailureReason: true,
+      ),
+    );
+
+    final selected = await _mediaSourceService.pickDirectory();
+    if (selected == null || selected.isEmpty) {
+      _setJob(
+        currentJob.value.copyWith(
+          stage: ProcessingStage.idle,
+          message: 'Folder selection cancelled.',
+        ),
+      );
+      return;
+    }
+
+    _setJob(
+      currentJob.value.copyWith(
+        stage: ProcessingStage.idle,
+        selectedSource: selected,
+        message: 'Selected folder: $selected',
+        clearFailureReason: true,
+      ),
+    );
+  }
+
+  Future<void> analyzeSelectedFolder() async {
+    final selectedSource = currentJob.value.selectedSource;
+    if (selectedSource == null || selectedSource.isEmpty) {
+      throw StateError('Select a folder before starting analysis.');
+    }
+
+    _setJob(
+      currentJob.value.copyWith(
+        stage: ProcessingStage.requestingPermission,
+        progress: 0,
+        items: const [],
+        clusters: const [],
+        message: 'Checking media permissions',
+        clearFailureReason: true,
+      ),
+    );
+
+    final granted = await _permissionService.requestMediaAccess();
+    if (!granted) {
+      _setJob(
+        currentJob.value.copyWith(
+          stage: ProcessingStage.failed,
+          message: 'Media access permission was denied.',
+          failureReason: 'Permission denied',
+        ),
+      );
+      return;
+    }
+
+    try {
+      _setJob(
+        currentJob.value.copyWith(
+          stage: ProcessingStage.scanning,
+          progress: 0.1,
+          message: 'Scanning images from $selectedSource',
+        ),
+      );
+
+      final scanned = await _fileScanService.scanDirectory(selectedSource);
+      _setJob(
+        currentJob.value.copyWith(
+          stage: ProcessingStage.hashing,
+          progress: 0.35,
+          items: scanned,
+          message: 'Computing SHA-256 and perceptual hashes for ${scanned.length} images',
+        ),
+      );
+
+      final hashed = <MediaItem>[];
+      for (final item in scanned) {
+        hashed.add(await _hashService.enrich(item));
+      }
+
+      _setJob(
+        currentJob.value.copyWith(
+          stage: ProcessingStage.embedding,
+          progress: 0.6,
+          items: hashed,
+          message: 'Building local image embeddings',
+        ),
+      );
+
+      final embedded = <MediaItem>[];
+      for (final item in hashed) {
+        embedded.add(await _embeddingService.enrich(item));
+      }
+
+      _setJob(
+        currentJob.value.copyWith(
+          stage: ProcessingStage.comparing,
+          progress: 0.8,
+          items: embedded,
+          message: 'Comparing candidate pairs',
+        ),
+      );
+
+      final edges = _similarityService.buildEdges(embedded);
+      _setJob(
+        currentJob.value.copyWith(
+          stage: ProcessingStage.clustering,
+          progress: 0.9,
+          message: 'Building similarity clusters',
+        ),
+      );
+      final results = _clusterService.buildClusters(items: embedded, edges: edges);
+
+      _setJob(
+        currentJob.value.copyWith(
+          stage: ProcessingStage.completed,
+          progress: 1,
+          items: embedded,
+          clusters: results,
+          message: 'Built ${results.length} clusters from ${embedded.length} images',
+        ),
+      );
+    } catch (error, stackTrace) {
+      _logger.error('ProcessingOrchestrator', 'Analysis failed', error, stackTrace);
+      _setJob(
+        currentJob.value.copyWith(
+          stage: ProcessingStage.failed,
+          message: 'Analysis failed: $error',
+          failureReason: '$error',
+        ),
+      );
+    }
+  }
+
+  int countByType(SimilarityType type) {
+    return currentJob.value.clusters.where((cluster) => cluster.clusterType == type).length;
+  }
+
+  int get potentialSavingsBytes {
+    return currentJob.value.clusters.fold<int>(
+      0,
+      (sum, cluster) => sum + cluster.reclaimableBytesEstimate,
+    );
+  }
+
+  void _setJob(ProcessingJob job) {
+    currentJob.value = job;
+  }
+}

@@ -13,8 +13,8 @@ class DashboardPage extends GetView<ScanController> {
       appBar: AppBar(
         title: const Text('Media De-duplication POC'),
       ),
-      body: Obx(
-        () => ListView(
+      body: GetBuilder<ScanController>(
+        builder: (_) => ListView(
           padding: const EdgeInsets.all(20),
           children: [
             Container(
@@ -48,18 +48,18 @@ class DashboardPage extends GetView<ScanController> {
                     runSpacing: 12,
                     children: [
                       FilledButton.tonal(
-                        onPressed: controller.isAnalyzing.value ? null : controller.pickFolder,
+                        onPressed: controller.isAnalyzing ? null : controller.pickFolder,
                         child: const Text('Select Folder'),
                       ),
                       FilledButton(
-                        onPressed: controller.isAnalyzing.value ? null : controller.analyzeSelectedFolder,
-                        child: Text(controller.isAnalyzing.value ? 'Analyzing...' : 'Analyze'),
+                        onPressed: controller.isAnalyzing ? null : controller.analyzeSelectedFolder,
+                        child: Text(controller.isAnalyzing ? 'Analyzing...' : 'Analyze'),
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    controller.selectedDirectory.value ?? 'No folder selected yet.',
+                    controller.selectedDirectory ?? 'No folder selected yet.',
                     style: const TextStyle(color: Colors.white),
                   ),
                 ],
@@ -69,8 +69,15 @@ class DashboardPage extends GetView<ScanController> {
             Card(
               child: ListTile(
                 leading: const Icon(Icons.radar),
-                title: Text(controller.stageLabel.value),
-                subtitle: Text(controller.progressMessage.value),
+                title: Text(controller.stageLabel),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(controller.progressMessage),
+                    const SizedBox(height: 8),
+                    LinearProgressIndicator(value: controller.progress),
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 20),
@@ -84,22 +91,22 @@ class DashboardPage extends GetView<ScanController> {
               children: [
                 StatCard(
                   label: 'Images Analyzed',
-                  value: '${controller.scannedItems.length}',
+                  value: '${controller.scannedCount}',
                   icon: Icons.photo_library_outlined,
                 ),
                 StatCard(
                   label: 'Exact Groups',
-                  value: '${controller.exactClusterCount.value}',
+                  value: '${controller.exactClusterCount}',
                   icon: Icons.copy_all_outlined,
                 ),
                 StatCard(
                   label: 'Near-dup Groups',
-                  value: '${controller.nearClusterCount.value}',
+                  value: '${controller.nearClusterCount}',
                   icon: Icons.filter_none_outlined,
                 ),
                 StatCard(
                   label: 'Semantic Groups',
-                  value: '${controller.semanticClusterCount.value}',
+                  value: '${controller.semanticClusterCount}',
                   icon: Icons.auto_awesome_outlined,
                 ),
               ],
@@ -109,7 +116,7 @@ class DashboardPage extends GetView<ScanController> {
               child: ListTile(
                 leading: const Icon(Icons.savings_outlined),
                 title: const Text('Potential reclaimable storage'),
-                subtitle: Text(Formatters.bytes(controller.potentialSavingsBytes.value)),
+                subtitle: Text(Formatters.bytes(controller.potentialSavingsBytes)),
               ),
             ),
             const SizedBox(height: 20),
@@ -125,7 +132,7 @@ class DashboardPage extends GetView<ScanController> {
                 child: Padding(
                   padding: const EdgeInsets.all(20),
                   child: Text(
-                    controller.isAnalyzing.value
+                    controller.isAnalyzing
                         ? 'Working through the current scan.'
                         : 'No clusters yet. Pick a folder and run analysis.',
                   ),

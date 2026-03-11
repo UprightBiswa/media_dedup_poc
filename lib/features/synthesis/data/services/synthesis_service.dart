@@ -1,4 +1,3 @@
-import 'package:collection/collection.dart';
 import 'package:path/path.dart' as p;
 import 'package:media_dedup_poc/features/dedup/domain/models/similarity_edge.dart';
 import 'package:media_dedup_poc/features/media_scan/domain/models/media_item.dart';

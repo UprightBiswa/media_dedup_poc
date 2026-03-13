@@ -46,6 +46,7 @@ android {
 }
 
 dependencies {
+    implementation("com.google.mediapipe:tasks-vision:latest.release")
     debugImplementation("io.objectbox:objectbox-android-objectbrowser:5.1.0")
 }
 

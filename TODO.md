@@ -6,6 +6,7 @@
 - Split exact hash and perceptual hash into distinct services.
 - Add cluster detail page with larger thumbnails and metadata.
 - Add progress-safe batching for large folder scans.
+- Validate Android MediaPipe build/run and persist real embedding vectors.
 
 ## Next
 - Integrate `photo_manager` for paginated gallery image scanning.

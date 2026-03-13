@@ -1,14 +1,31 @@
 import 'dart:io';
 import 'dart:math' as math;
 
+import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
 import 'package:media_dedup_poc/features/media_scan/domain/models/media_item.dart';
 
 class EmbeddingService {
-  static const modelName = 'heuristic_image_embedding_v0';
+  static const _channel = MethodChannel('media_dedup_poc/image_embedder');
+  static const modelName = 'mediapipe_mobilenet_v3_small';
+  static const fallbackModelName = 'heuristic_image_embedding_v0';
   static const vectorDimension = 18;
 
   Future<MediaItem> enrich(MediaItem item) async {
+    if (Platform.isAndroid) {
+      try {
+        final nativeEmbedding = await _getNativeEmbedding(item.path);
+        if (nativeEmbedding.isNotEmpty) {
+          return item.copyWith(
+            embedding: nativeEmbedding,
+            analysisStatus: AnalysisStatus.embedded,
+          );
+        }
+      } on PlatformException {
+        // Fall back to heuristic embedding until the native model asset is available.
+      }
+    }
+
     final bytes = await File(item.path).readAsBytes();
     final source = img.decodeImage(bytes);
     if (source == null) {
@@ -38,6 +55,17 @@ class EmbeddingService {
     }
 
     return bins.map((value) => value / norm).toList(growable: false);
+  }
+
+  Future<List<double>> _getNativeEmbedding(String imagePath) async {
+    final result = await _channel.invokeMethod<List<dynamic>>(
+      'getImageEmbedding',
+      {'imagePath': imagePath},
+    );
+    if (result == null) {
+      return const [];
+    }
+    return result.map((value) => (value as num).toDouble()).toList(growable: false);
   }
 
   int _bucket(num channel) {

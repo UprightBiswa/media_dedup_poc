@@ -26,6 +26,8 @@
 - Added nested-folder rescan reuse so unchanged files are not fully reindexed each time.
 - Added stale-record cleanup for files removed from a rescanned source.
 - Added dashboard reload from cached ObjectBox media index on app start.
+- Added Android MediaPipe method-channel bridge for real image embeddings.
+- Added official MobileNet-V3 small image-embedder model to Android assets.
 
 ## Current behavior
 - App opens.
@@ -36,7 +38,7 @@
   - cached thumbnails
   - exact hash
   - dHash-like perceptual hash
-  - heuristic embedding
+  - Android MediaPipe embedding with heuristic fallback if native model is unavailable
   - edge building
   - clustering
   - rule-based synthesis
@@ -45,7 +47,7 @@
 - Paginated gallery scan with `photo_manager`
 - Persisted similarity edges and clusters
 - Removed-file cleanup reporting in UI
-- Native MediaPipe Image Embedder bridge
+- Native MediaPipe build/run validation on device
 - Real embedding cache
 - Cluster detail screen
 - Settings/debug screen
@@ -54,4 +56,4 @@
 
 ## Immediate next milestone
 - Split exact/perceptual hash services and add cluster detail screen
-- Start actual Android MediaPipe embedding integration after that
+- Validate MediaPipe embeddings on device and persist real embedding vectors

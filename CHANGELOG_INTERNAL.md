@@ -20,6 +20,8 @@
 - Added cached dashboard reload from ObjectBox on app start.
 - Added stale-file cleanup for rescanned sources.
 - Added nested-folder scan reuse for unchanged indexed files.
+- Added Android MediaPipe Image Embedder method-channel bridge.
+- Downloaded the official MobileNet-V3 small image-embedder model into Android assets.
 - Added repository tracking files:
   - `PROJECT_STATUS.md`
   - `TODO.md`

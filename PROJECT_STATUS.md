@@ -32,6 +32,8 @@
 - Disabled Kotlin incremental compilation for this project to avoid the Windows cache-path compile bug.
 - Added visible embedding-backend status in the dashboard.
 - Added tap-to-preview image inspection with full view and file path copy.
+- Fixed Android release build by pinning the MediaPipe dependency and adding release-safe R8 rules.
+- Disabled release minification/resource shrinking because MediaPipe crashes under the current R8-obfuscated release build.
 
 ## Current behavior
 - App opens.
@@ -51,7 +53,7 @@
 - Paginated gallery scan with `photo_manager`
 - Persisted similarity edges and clusters
 - Removed-file cleanup reporting in UI
-- Native MediaPipe runtime validation on device
+- Native MediaPipe runtime validation under an obfuscated/minified release build
 - Real embedding cache
 - Cluster detail screen
 - Settings/debug screen

@@ -18,17 +18,60 @@ class EmbeddingService {
   static const fallbackModelName = 'heuristic_image_embedding_v0';
   static const vectorDimension = 18;
   final Rx<EmbeddingBackend> _backend = EmbeddingBackend.unknown.obs;
+  final RxInt _nativeSuccessCount = 0.obs;
+  final RxInt _fallbackCount = 0.obs;
+  final RxnString _lastNativeError = RxnString();
+  bool? _isNativeModelReady;
 
   EmbeddingBackend get currentBackend => _backend.value;
   String get backendLabel {
-    switch (_backend.value) {
-      case EmbeddingBackend.nativeMediaPipe:
-        return 'MediaPipe';
-      case EmbeddingBackend.heuristicFallback:
-        return 'Fallback';
-      case EmbeddingBackend.unknown:
-        return 'Unknown';
+    if (_nativeSuccessCount.value > 0) {
+      return 'MediaPipe';
     }
+    if (_fallbackCount.value > 0) {
+      return 'Fallback';
+    }
+    return 'Unknown';
+  }
+
+  String get backendDiagnostics {
+    final parts = <String>[];
+    parts.add('native=${_nativeSuccessCount.value}');
+    parts.add('fallback=${_fallbackCount.value}');
+    if (_isNativeModelReady != null) {
+      parts.add('modelReady=${_isNativeModelReady!}');
+    }
+    if (_lastNativeError.value != null && _lastNativeError.value!.isNotEmpty) {
+      parts.add('error=${_lastNativeError.value}');
+    }
+    return parts.join(' | ');
+  }
+
+  Future<void> probeBackend() async {
+    if (!Platform.isAndroid) {
+      return;
+    }
+    try {
+      final result = await _channel.invokeMethod<Map<dynamic, dynamic>>(
+        'getModelStatus',
+      );
+      _isNativeModelReady = (result?['ready'] as bool?) ?? false;
+      final error = result?['error'] as String?;
+      _lastNativeError.value = error;
+      if (_isNativeModelReady == true && _nativeSuccessCount.value == 0) {
+        _backend.value = EmbeddingBackend.nativeMediaPipe;
+      }
+    } on PlatformException catch (error) {
+      _isNativeModelReady = false;
+      _lastNativeError.value = error.message;
+    }
+  }
+
+  void resetRunStats() {
+    _nativeSuccessCount.value = 0;
+    _fallbackCount.value = 0;
+    _lastNativeError.value = null;
+    _backend.value = EmbeddingBackend.unknown;
   }
 
   Future<MediaItem> enrich(MediaItem item) async {
@@ -36,14 +79,15 @@ class EmbeddingService {
       try {
         final nativeEmbedding = await _getNativeEmbedding(item.path);
         if (nativeEmbedding.isNotEmpty) {
+          _nativeSuccessCount.value++;
           _backend.value = EmbeddingBackend.nativeMediaPipe;
           return item.copyWith(
             embedding: nativeEmbedding,
             analysisStatus: AnalysisStatus.embedded,
           );
         }
-      } on PlatformException {
-        // Fall back to heuristic embedding until the native model asset is available.
+      } on PlatformException catch (error) {
+        _lastNativeError.value = error.message;
       }
     }
 
@@ -54,7 +98,10 @@ class EmbeddingService {
     }
 
     final embedding = _buildHeuristicEmbedding(source);
-    _backend.value = EmbeddingBackend.heuristicFallback;
+    _fallbackCount.value++;
+    if (_nativeSuccessCount.value == 0) {
+      _backend.value = EmbeddingBackend.heuristicFallback;
+    }
     return item.copyWith(
       embedding: embedding,
       analysisStatus: AnalysisStatus.embedded,

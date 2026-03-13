@@ -70,6 +70,11 @@ class DashboardPage extends GetView<ScanController> {
                       'Embedding backend: ${controller.embeddingBackendLabel}',
                     ),
                   ),
+                  const SizedBox(height: 8),
+                  Text(
+                    controller.embeddingBackendDiagnostics,
+                    style: const TextStyle(color: Colors.white70, fontSize: 12),
+                  ),
                 ],
               ),
             ),

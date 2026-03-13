@@ -34,6 +34,7 @@ class ScanController extends GetxController {
       _orchestrator.countByType(SimilarityType.semanticSimilar);
   int get potentialSavingsBytes => _orchestrator.potentialSavingsBytes;
   String get embeddingBackendLabel => _embeddingService.backendLabel;
+  String get embeddingBackendDiagnostics => _embeddingService.backendDiagnostics;
 
   Future<void> pickFolder() async {
     await _orchestrator.selectFolder();

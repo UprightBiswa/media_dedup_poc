@@ -26,6 +26,8 @@
 - Disabled Kotlin incremental compilation in Gradle to work around the Windows cache-root compiler bug.
 - Added a dashboard indicator for the active embedding backend.
 - Added tap-to-preview full image inspection with file path copy.
+- Fixed Android release minification by pinning `tasks-vision` and adding the generated R8 `dontwarn` rules.
+- Disabled release minification and resource shrinking after confirming MediaPipe crashes in the obfuscated release runtime.
 - Added repository tracking files:
   - `PROJECT_STATUS.md`
   - `TODO.md`

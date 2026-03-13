@@ -116,6 +116,8 @@ class ProcessingOrchestrator extends GetxService {
     if (selectedSource == null || selectedSource.isEmpty) {
       throw StateError('Select a folder before starting analysis.');
     }
+    _embeddingService.resetRunStats();
+    await _embeddingService.probeBackend();
 
     _setJob(
       currentJob.value.copyWith(

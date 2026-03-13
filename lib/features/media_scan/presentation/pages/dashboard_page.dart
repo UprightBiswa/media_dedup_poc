@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:media_dedup_poc/core/utils/formatters.dart';
 import 'package:media_dedup_poc/features/media_scan/presentation/controllers/scan_controller.dart';
+import 'package:media_dedup_poc/features/results/presentation/pages/media_preview_page.dart';
 import 'package:media_dedup_poc/shared/widgets/media_thumbnail_tile.dart';
 import 'package:media_dedup_poc/shared/widgets/stat_card.dart';
 
@@ -62,6 +63,12 @@ class DashboardPage extends GetView<ScanController> {
                   Text(
                     controller.selectedDirectory ?? 'No folder selected yet.',
                     style: const TextStyle(color: Colors.white),
+                  ),
+                  const SizedBox(height: 12),
+                  Chip(
+                    label: Text(
+                      'Embedding backend: ${controller.embeddingBackendLabel}',
+                    ),
                   ),
                 ],
               ),
@@ -142,76 +149,112 @@ class DashboardPage extends GetView<ScanController> {
             ...controller.clusters.map(
               (cluster) => Card(
                 margin: const EdgeInsets.only(bottom: 12),
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          MediaThumbnailTile(
-                            item: cluster.representative,
-                            width: 110,
-                            height: 110,
-                            borderRadius: 20,
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                      Text(
-                        cluster.synthesisTitle,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(24),
+                  onTap: () {
+                    Get.to(
+                      () => MediaPreviewPage(
+                        item: cluster.representative,
+                        scoreLabel:
+                            'Cluster avg ${Formatters.percent(cluster.averageScore)}',
                       ),
-                                const SizedBox(height: 6),
-                                Text(cluster.synthesisSubtitle),
-                                const SizedBox(height: 12),
-                                Wrap(
-                                  spacing: 8,
-                                  runSpacing: 8,
-                                  children: [
-                                    Chip(label: Text(cluster.clusterType.name)),
-                                    Chip(label: Text('${cluster.items.length} items')),
-                                    Chip(
-                                      label: Text(
-                                        'Avg score ${Formatters.percent(cluster.averageScore)}',
-                                      ),
-                                    ),
-                                    Chip(
-                                      label: Text(
-                                        'Savings ${Formatters.bytes(cluster.reclaimableBytesEstimate)}',
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                    );
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                Get.to(
+                                  () => MediaPreviewPage(
+                                    item: cluster.representative,
+                                    scoreLabel:
+                                        'Cluster avg ${Formatters.percent(cluster.averageScore)}',
+                                  ),
+                                );
+                              },
+                              child: MediaThumbnailTile(
+                                item: cluster.representative,
+                                width: 110,
+                                height: 110,
+                                borderRadius: 20,
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      SizedBox(
-                        height: 84,
-                        child: ListView.separated(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: cluster.items.length,
-                          separatorBuilder: (_, __) => const SizedBox(width: 8),
-                          itemBuilder: (context, index) {
-                            return MediaThumbnailTile(item: cluster.items[index]);
-                          },
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    cluster.synthesisTitle,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(fontWeight: FontWeight.w700),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(cluster.synthesisSubtitle),
+                                  const SizedBox(height: 12),
+                                  Wrap(
+                                    spacing: 8,
+                                    runSpacing: 8,
+                                    children: [
+                                      Chip(label: Text(cluster.clusterType.name)),
+                                      Chip(label: Text('${cluster.items.length} items')),
+                                      Chip(
+                                        label: Text(
+                                          'Avg score ${Formatters.percent(cluster.averageScore)}',
+                                        ),
+                                      ),
+                                      Chip(
+                                        label: Text(
+                                          'Savings ${Formatters.bytes(cluster.reclaimableBytesEstimate)}',
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        cluster.items.map((item) => item.fileName).join(', '),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          height: 84,
+                          child: ListView.separated(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: cluster.items.length,
+                            separatorBuilder: (_, __) => const SizedBox(width: 8),
+                            itemBuilder: (context, index) {
+                              final item = cluster.items[index];
+                              return GestureDetector(
+                                onTap: () {
+                                  Get.to(
+                                    () => MediaPreviewPage(
+                                      item: item,
+                                      scoreLabel:
+                                          'Cluster avg ${Formatters.percent(cluster.averageScore)}',
+                                    ),
+                                  );
+                                },
+                                child: MediaThumbnailTile(item: item),
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          cluster.items.map((item) => item.fileName).join(', '),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

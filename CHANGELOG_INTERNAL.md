@@ -24,6 +24,8 @@
 - Downloaded the official MobileNet-V3 small image-embedder model into Android assets.
 - Fixed the MediaPipe Android result accessor to use `embeddingResult().embeddings().first().floatEmbedding()`.
 - Disabled Kotlin incremental compilation in Gradle to work around the Windows cache-root compiler bug.
+- Added a dashboard indicator for the active embedding backend.
+- Added tap-to-preview full image inspection with file path copy.
 - Added repository tracking files:
   - `PROJECT_STATUS.md`
   - `TODO.md`

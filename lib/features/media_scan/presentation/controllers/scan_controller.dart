@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:media_dedup_poc/core/services/processing_orchestrator.dart';
 import 'package:media_dedup_poc/features/dedup/domain/models/similarity_edge.dart';
+import 'package:media_dedup_poc/features/similarity/data/services/embedding_service.dart';
 import 'package:media_dedup_poc/features/similarity/domain/models/similarity_cluster.dart';
 import 'package:media_dedup_poc/shared/models/processing_job.dart';
 
@@ -9,6 +10,7 @@ class ScanController extends GetxController {
       : _orchestrator = orchestrator;
 
   final ProcessingOrchestrator _orchestrator;
+  final EmbeddingService _embeddingService = Get.find<EmbeddingService>();
 
   @override
   void onInit() {
@@ -31,6 +33,7 @@ class ScanController extends GetxController {
   int get semanticClusterCount =>
       _orchestrator.countByType(SimilarityType.semanticSimilar);
   int get potentialSavingsBytes => _orchestrator.potentialSavingsBytes;
+  String get embeddingBackendLabel => _embeddingService.backendLabel;
 
   Future<void> pickFolder() async {
     await _orchestrator.selectFolder();

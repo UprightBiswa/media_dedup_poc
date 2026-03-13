@@ -4,7 +4,7 @@
 - Extend entities for embeddings, similarity edges, and clusters.
 - Replace direct folder-only scan flow with persisted paginated media-source indexing.
 - Split exact hash and perceptual hash into distinct services.
-- Add cluster detail page with larger thumbnails and metadata.
+- Add full cluster detail page with per-item scores and metadata diff.
 - Add progress-safe batching for large folder scans.
 - Validate Android MediaPipe build/run and persist real embedding vectors.
 
@@ -13,6 +13,7 @@
 - Add candidate pre-filtering by file size before SHA-256.
 - Add larger gallery-style cluster preview screen.
 - Persist similarity edges and clusters.
+- Add open-in-system-file-view action where supported.
 
 ## Later
 - Add Android native MediaPipe Image Embedder bridge.

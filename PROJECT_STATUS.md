@@ -30,6 +30,8 @@
 - Added official MobileNet-V3 small image-embedder model to Android assets.
 - Fixed MediaPipe result accessors against the resolved Android API.
 - Disabled Kotlin incremental compilation for this project to avoid the Windows cache-path compile bug.
+- Added visible embedding-backend status in the dashboard.
+- Added tap-to-preview image inspection with full view and file path copy.
 
 ## Current behavior
 - App opens.

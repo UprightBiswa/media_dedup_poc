@@ -1,21 +1,42 @@
 import 'dart:io';
 import 'dart:math' as math;
 
+import 'package:get/get.dart';
 import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
 import 'package:media_dedup_poc/features/media_scan/domain/models/media_item.dart';
+
+enum EmbeddingBackend {
+  unknown,
+  nativeMediaPipe,
+  heuristicFallback,
+}
 
 class EmbeddingService {
   static const _channel = MethodChannel('media_dedup_poc/image_embedder');
   static const modelName = 'mediapipe_mobilenet_v3_small';
   static const fallbackModelName = 'heuristic_image_embedding_v0';
   static const vectorDimension = 18;
+  final Rx<EmbeddingBackend> _backend = EmbeddingBackend.unknown.obs;
+
+  EmbeddingBackend get currentBackend => _backend.value;
+  String get backendLabel {
+    switch (_backend.value) {
+      case EmbeddingBackend.nativeMediaPipe:
+        return 'MediaPipe';
+      case EmbeddingBackend.heuristicFallback:
+        return 'Fallback';
+      case EmbeddingBackend.unknown:
+        return 'Unknown';
+    }
+  }
 
   Future<MediaItem> enrich(MediaItem item) async {
     if (Platform.isAndroid) {
       try {
         final nativeEmbedding = await _getNativeEmbedding(item.path);
         if (nativeEmbedding.isNotEmpty) {
+          _backend.value = EmbeddingBackend.nativeMediaPipe;
           return item.copyWith(
             embedding: nativeEmbedding,
             analysisStatus: AnalysisStatus.embedded,
@@ -33,6 +54,7 @@ class EmbeddingService {
     }
 
     final embedding = _buildHeuristicEmbedding(source);
+    _backend.value = EmbeddingBackend.heuristicFallback;
     return item.copyWith(
       embedding: embedding,
       analysisStatus: AnalysisStatus.embedded,

@@ -17,6 +17,9 @@
 - Added repository layer for scan persistence and simple incremental reuse.
 - Added thumbnail cache generation for scanned media.
 - Added visible cluster previews on the dashboard.
+- Added cached dashboard reload from ObjectBox on app start.
+- Added stale-file cleanup for rescanned sources.
+- Added nested-folder scan reuse for unchanged indexed files.
 - Added repository tracking files:
   - `PROJECT_STATUS.md`
   - `TODO.md`

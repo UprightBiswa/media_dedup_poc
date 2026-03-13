@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:convert';
 
 import 'package:media_dedup_poc/core/database/objectbox_service.dart';
@@ -62,6 +63,30 @@ class MediaRepository {
     final query = _box.query(MediaItemEntity_.sourceRoot.equals(sourceRoot)).build();
     try {
       return query.find().map(_toDomain).toList(growable: false);
+    } finally {
+      query.close();
+    }
+  }
+
+  Future<void> removeMissingItems(
+    String sourceRoot,
+    Set<String> validPaths,
+  ) async {
+    final query = _box.query(MediaItemEntity_.sourceRoot.equals(sourceRoot)).build();
+    try {
+      final existing = query.find();
+      for (final entity in existing) {
+        if (validPaths.contains(entity.path)) {
+          continue;
+        }
+        if (entity.thumbnailPath != null) {
+          final thumbnailFile = File(entity.thumbnailPath!);
+          if (await thumbnailFile.exists()) {
+            await thumbnailFile.delete();
+          }
+        }
+        _box.remove(entity.id);
+      }
     } finally {
       query.close();
     }

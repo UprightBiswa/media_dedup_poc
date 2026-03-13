@@ -23,6 +23,9 @@
 - Persisted scan results and reuse of unchanged hashed/embedded items by content version key.
 - Added thumbnail cache generation during scan.
 - Added visible cluster previews with representative and item thumbnails.
+- Added nested-folder rescan reuse so unchanged files are not fully reindexed each time.
+- Added stale-record cleanup for files removed from a rescanned source.
+- Added dashboard reload from cached ObjectBox media index on app start.
 
 ## Current behavior
 - App opens.
@@ -39,10 +42,9 @@
   - rule-based synthesis
 
 ## Not implemented yet
-- ObjectBox entities and repositories
 - Paginated gallery scan with `photo_manager`
-- Thumbnail cache
-- Incremental re-scan
+- Persisted similarity edges and clusters
+- Removed-file cleanup reporting in UI
 - Native MediaPipe Image Embedder bridge
 - Real embedding cache
 - Cluster detail screen
@@ -51,4 +53,5 @@
 - Resume interrupted jobs
 
 ## Immediate next milestone
-- Finish Milestone 2: persisted summary loading, removed-file cleanup, and paginated media indexing
+- Split exact/perceptual hash services and add cluster detail screen
+- Start actual Android MediaPipe embedding integration after that

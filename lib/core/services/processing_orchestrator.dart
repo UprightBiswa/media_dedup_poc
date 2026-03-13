@@ -14,6 +14,7 @@ import 'package:media_dedup_poc/features/permissions/data/services/media_permiss
 import 'package:media_dedup_poc/features/similarity/data/services/cluster_service.dart';
 import 'package:media_dedup_poc/features/similarity/data/services/embedding_service.dart';
 import 'package:media_dedup_poc/features/similarity/data/services/similarity_service.dart';
+import 'package:media_dedup_poc/features/similarity/domain/models/similarity_cluster.dart';
 import 'package:media_dedup_poc/shared/models/processing_job.dart';
 
 class ProcessingOrchestrator extends GetxService {
@@ -62,7 +63,22 @@ class ProcessingOrchestrator extends GetxService {
   }
 
   Future<void> _restorePersistedJob() async {
-    currentJob.value = await _processingJobRepository.load();
+    final persistedJob = await _processingJobRepository.load();
+    final selectedSource = persistedJob.selectedSource;
+    if (selectedSource == null || selectedSource.isEmpty) {
+      currentJob.value = persistedJob;
+      return;
+    }
+
+    final items = await _mediaRepository.fetchAllForSource(selectedSource);
+    final clusters = _rebuildClusters(items);
+    currentJob.value = persistedJob.copyWith(
+      items: items,
+      clusters: clusters,
+      message: items.isEmpty
+          ? persistedJob.message
+          : 'Reloaded ${items.length} indexed images from local cache',
+    );
   }
 
   Future<void> selectFolder() async {
@@ -135,10 +151,21 @@ class ProcessingOrchestrator extends GetxService {
         ),
       );
 
-      final scanned = await _fileScanService.scanDirectory(selectedSource);
+      final existingItems = await _mediaRepository.fetchAllForSource(selectedSource);
+      final existingItemsByPath = {
+        for (final item in existingItems) item.path: item,
+      };
+      final scanned = await _fileScanService.scanDirectory(
+        selectedSource,
+        existingItemsByPath: existingItemsByPath,
+      );
       final persistedScanned = await _mediaRepository.upsertScannedItems(
         scanned,
         sourceRoot: selectedSource,
+      );
+      await _mediaRepository.removeMissingItems(
+        selectedSource,
+        persistedScanned.map((item) => item.path).toSet(),
       );
       final thumbnailReady = <MediaItem>[];
       _setJob(
@@ -245,6 +272,14 @@ class ProcessingOrchestrator extends GetxService {
       0,
       (sum, cluster) => sum + cluster.reclaimableBytesEstimate,
     );
+  }
+
+  List<SimilarityCluster> _rebuildClusters(List<MediaItem> items) {
+    if (items.length < 2) {
+      return const <SimilarityCluster>[];
+    }
+    final edges = _similarityService.buildEdges(items);
+    return _clusterService.buildClusters(items: items, edges: edges);
   }
 
   void _setJob(ProcessingJob job) {

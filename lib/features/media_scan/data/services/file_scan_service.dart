@@ -14,39 +14,47 @@ class FileScanService {
     '.bmp',
   };
 
-  Future<List<MediaItem>> scanDirectory(String directoryPath) async {
+  Future<List<MediaItem>> scanDirectory(
+    String directoryPath, {
+    Map<String, MediaItem> existingItemsByPath = const {},
+  }) async {
     final directory = Directory(directoryPath);
     if (!await directory.exists()) {
       return [];
     }
 
-    final files = <File>[];
+    final items = <MediaItem>[];
     await for (final entity in directory.list(recursive: true, followLinks: false)) {
-      if (entity is! File) {
+      if (entity is! File || p.basename(entity.path).startsWith('.')) {
         continue;
       }
 
       final extension = p.extension(entity.path).toLowerCase();
-      if (_supportedExtensions.contains(extension)) {
-        files.add(entity);
+      if (!_supportedExtensions.contains(extension)) {
+        continue;
       }
-    }
 
-    final items = <MediaItem>[];
-    for (final file in files) {
-      final stat = await file.stat();
-      final bytes = await file.readAsBytes();
+      final stat = await entity.stat();
+      final existing = existingItemsByPath[entity.path];
+      if (existing != null &&
+          existing.sizeBytes == stat.size &&
+          existing.modifiedAt.millisecondsSinceEpoch ==
+              stat.modified.millisecondsSinceEpoch) {
+        items.add(existing);
+        continue;
+      }
+
+      final bytes = await entity.readAsBytes();
       final decoded = img.decodeImage(bytes);
       if (decoded == null) {
         continue;
       }
-
       items.add(
         MediaItem(
-          id: file.path,
-          path: file.path,
-          fileName: p.basename(file.path),
-          mimeType: 'image/${p.extension(file.path).replaceFirst('.', '')}',
+          id: entity.path,
+          path: entity.path,
+          fileName: p.basename(entity.path),
+          mimeType: 'image/${p.extension(entity.path).replaceFirst('.', '')}',
           sizeBytes: stat.size,
           width: decoded.width,
           height: decoded.height,

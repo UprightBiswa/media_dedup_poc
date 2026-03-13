@@ -88,7 +88,7 @@ class MainActivity : FlutterActivity() {
             ?: throw IllegalStateException("Unable to decode image at $imagePath")
         val mpImage = BitmapImageBuilder(bitmap).build()
         val result = getImageEmbedder().embed(mpImage)
-        val embedding = result.embeddings().firstOrNull()?.floatEmbedding()
+        val embedding = result.embeddingResult().embeddings().firstOrNull()?.floatEmbedding()
             ?: throw IllegalStateException("No embedding returned for $imagePath")
         return embedding.toList()
     }

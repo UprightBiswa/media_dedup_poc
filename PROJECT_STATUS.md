@@ -28,6 +28,8 @@
 - Added dashboard reload from cached ObjectBox media index on app start.
 - Added Android MediaPipe method-channel bridge for real image embeddings.
 - Added official MobileNet-V3 small image-embedder model to Android assets.
+- Fixed MediaPipe result accessors against the resolved Android API.
+- Disabled Kotlin incremental compilation for this project to avoid the Windows cache-path compile bug.
 
 ## Current behavior
 - App opens.
@@ -47,7 +49,7 @@
 - Paginated gallery scan with `photo_manager`
 - Persisted similarity edges and clusters
 - Removed-file cleanup reporting in UI
-- Native MediaPipe build/run validation on device
+- Native MediaPipe runtime validation on device
 - Real embedding cache
 - Cluster detail screen
 - Settings/debug screen

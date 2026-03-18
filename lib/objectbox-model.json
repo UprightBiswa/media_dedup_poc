@@ -149,10 +149,66 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "3:9106941712744833718",
+      "lastPropertyId": "9:1608853872542431893",
+      "name": "EmbeddingRecordEntity",
+      "properties": [
+        {
+          "id": "1:3991245026936790795",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:7703852026995452385",
+          "name": "mediaPath",
+          "indexId": "3:4997245401148646447",
+          "type": 9,
+          "flags": 2080
+        },
+        {
+          "id": "3:5183189523322837435",
+          "name": "contentVersionKey",
+          "type": 9
+        },
+        {
+          "id": "4:521192060287760636",
+          "name": "modelName",
+          "type": 9
+        },
+        {
+          "id": "5:3088277229197048446",
+          "name": "vectorDimension",
+          "type": 6
+        },
+        {
+          "id": "6:5050968818534773269",
+          "name": "embeddingJson",
+          "type": 9
+        },
+        {
+          "id": "7:1228191478813261104",
+          "name": "backend",
+          "type": 9
+        },
+        {
+          "id": "8:166916894239415987",
+          "name": "createdAtEpochMs",
+          "type": 6
+        },
+        {
+          "id": "9:1608853872542431893",
+          "name": "updatedAtEpochMs",
+          "type": 6
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "2:7354469289138532160",
-  "lastIndexId": "2:8364997570123008728",
+  "lastEntityId": "3:9106941712744833718",
+  "lastIndexId": "3:4997245401148646447",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",
   "modelVersion": 5,

@@ -1,4 +1,4 @@
-import 'package:get/get.dart';
+﻿import 'package:get/get.dart';
 import 'package:media_dedup_poc/core/services/processing_orchestrator.dart';
 import 'package:media_dedup_poc/features/dedup/domain/models/similarity_edge.dart';
 import 'package:media_dedup_poc/features/similarity/data/services/embedding_service.dart';
@@ -32,6 +32,8 @@ class ScanController extends GetxController {
       _orchestrator.countByType(SimilarityType.nearDuplicate);
   int get semanticClusterCount =>
       _orchestrator.countByType(SimilarityType.semanticSimilar);
+  List<SimilarityCluster> get semanticClusters =>
+      _orchestrator.clustersByType(SimilarityType.semanticSimilar);
   int get potentialSavingsBytes => _orchestrator.potentialSavingsBytes;
   String get embeddingBackendLabel => _embeddingService.backendLabel;
   String get embeddingBackendDiagnostics => _embeddingService.backendDiagnostics;
@@ -55,3 +57,4 @@ class ScanController extends GetxController {
     update();
   }
 }
+

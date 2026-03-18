@@ -1,4 +1,4 @@
-import 'package:media_dedup_poc/core/database/objectbox_service.dart';
+﻿import 'package:media_dedup_poc/core/database/objectbox_service.dart';
 import 'package:media_dedup_poc/core/database/repositories/processing_job_repository.dart';
 import 'package:get/get.dart';
 import 'package:media_dedup_poc/core/logging/app_logger.dart';
@@ -10,6 +10,7 @@ import 'package:media_dedup_poc/features/media_scan/data/services/file_scan_serv
 import 'package:media_dedup_poc/features/media_scan/data/services/thumbnail_cache_service.dart';
 import 'package:media_dedup_poc/features/media_scan/presentation/controllers/scan_controller.dart';
 import 'package:media_dedup_poc/features/permissions/data/services/media_permission_service.dart';
+import 'package:media_dedup_poc/features/similarity/data/repositories/embedding_repository.dart';
 import 'package:media_dedup_poc/features/similarity/data/services/cluster_service.dart';
 import 'package:media_dedup_poc/features/similarity/data/services/embedding_service.dart';
 import 'package:media_dedup_poc/features/similarity/data/services/similarity_service.dart';
@@ -38,6 +39,13 @@ class InitialBinding extends Bindings {
       permanent: true,
     );
     Get.put(HashService(), permanent: true);
+    Get.put(
+      EmbeddingRepository(
+        Get.find<ObjectBoxService>(),
+        mediaRepository: Get.find<MediaRepository>(),
+      ),
+      permanent: true,
+    );
     Get.put(EmbeddingService(), permanent: true);
     Get.put(
       SimilarityService(
@@ -57,6 +65,7 @@ class InitialBinding extends Bindings {
         mediaRepository: Get.find<MediaRepository>(),
         processingJobRepository: Get.find<ProcessingJobRepository>(),
         hashService: Get.find<HashService>(),
+        embeddingRepository: Get.find<EmbeddingRepository>(),
         embeddingService: Get.find<EmbeddingService>(),
         similarityService: Get.find<SimilarityService>(),
         clusterService: Get.find<ClusterService>(),
@@ -69,3 +78,4 @@ class InitialBinding extends Bindings {
     );
   }
 }
+

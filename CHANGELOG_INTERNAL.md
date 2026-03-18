@@ -1,4 +1,11 @@
-# Internal Change Log
+﻿# Internal Change Log
+
+## 2026-03-18
+- Added `EmbeddingRecordEntity` and `EmbeddingRepository` for persisted AI embedding cache records.
+- Reused cached embeddings by content version key and active model name during analysis.
+- Updated semantic comparison so AI semantic groups are still created even when images also qualify as near-duplicates.
+- Added a dedicated `AI Semantic Groups` section to the dashboard for model-driven results.
+- Regenerated ObjectBox model/code and validated the project with `flutter analyze`.
 
 ## 2026-03-11
 - Generated full Flutter project scaffolding in `media_dedup_poc`.

@@ -1,7 +1,7 @@
-# Media Dedup POC Status
+﻿# Media Dedup POC Status
 
 ## Current milestone
-- Milestone 2 in progress: local persistence and scan/index caching.
+- Milestone 3 in progress: AI embedding persistence, semantic grouping clarity, and pipeline hardening.
 
 ## Implemented so far
 - Created a separate Flutter project with Android/iOS/web/desktop folders.
@@ -29,23 +29,26 @@
 - Added Android MediaPipe method-channel bridge for real image embeddings.
 - Added official MobileNet-V3 small image-embedder model to Android assets.
 - Fixed MediaPipe result accessors against the resolved Android API.
-- Disabled Kotlin incremental compilation for this project to avoid the Windows cache-path compile bug.
 - Added visible embedding-backend status in the dashboard.
 - Added tap-to-preview image inspection with full view and file path copy.
-- Fixed Android release build by pinning the MediaPipe dependency and adding release-safe R8 rules.
-- Disabled release minification/resource shrinking because MediaPipe crashes under the current R8-obfuscated release build.
+- Fixed Android release build/runtime so MediaPipe works in both debug and release with release shrink disabled.
+- Added first-class `EmbeddingRecordEntity` and `EmbeddingRepository` for persisted AI vectors.
+- Reused cached embeddings by content version key and active model name.
+- Updated semantic similarity so AI groups can still be built even when the same pair is also classified as near-duplicate.
+- Added a dedicated `AI Semantic Groups` section on the dashboard.
 
 ## Current behavior
 - App opens.
 - Folder picker works.
 - Analyze runs through the current local prototype pipeline.
-- Similarity pipeline is still prototype-level:
+- Similarity pipeline now includes:
   - file scan
   - cached thumbnails
   - exact hash
   - dHash-like perceptual hash
   - Android MediaPipe embedding with heuristic fallback if native model is unavailable
-  - edge building
+  - persisted embedding cache lookup
+  - edge building for exact, near-duplicate, and semantic similarity
   - clustering
   - rule-based synthesis
 
@@ -53,13 +56,14 @@
 - Paginated gallery scan with `photo_manager`
 - Persisted similarity edges and clusters
 - Removed-file cleanup reporting in UI
-- Native MediaPipe runtime validation under an obfuscated/minified release build
-- Real embedding cache
-- Cluster detail screen
+- Cluster detail screen with per-item scores and metadata
 - Settings/debug screen
-- Isolate-based batching
+- Isolate-based batching for hash/compare work
 - Resume interrupted jobs
+- Progress counters for discovered/hashed/embedded/clustered
 
 ## Immediate next milestone
-- Split exact/perceptual hash services and add cluster detail screen
-- Validate MediaPipe embeddings on device and persist real embedding vectors
+- Split exact/perceptual hash services
+- Persist similarity edges and clusters
+- Add cluster detail screen with per-item semantic score
+- Add batching and progress counters for large folder scans

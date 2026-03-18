@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:media_dedup_poc/core/utils/formatters.dart';
 import 'package:media_dedup_poc/features/media_scan/presentation/controllers/scan_controller.dart';
@@ -130,6 +130,61 @@ class DashboardPage extends GetView<ScanController> {
                 leading: const Icon(Icons.savings_outlined),
                 title: const Text('Potential reclaimable storage'),
                 subtitle: Text(Formatters.bytes(controller.potentialSavingsBytes)),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'AI Semantic Groups',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.psychology_alt_outlined),
+                title: const Text('Built from image embeddings'),
+                subtitle: Text(
+                  controller.embeddingBackendLabel == 'MediaPipe'
+                      ? 'These groups come from the on-device MediaPipe image embedding model.'
+                      : 'These groups are currently using the fallback embedding pipeline.',
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            if (controller.semanticClusters.isEmpty)
+              const Card(
+                child: Padding(
+                  padding: EdgeInsets.all(20),
+                  child: Text('No AI semantic groups yet for this scan.'),
+                ),
+              ),
+            ...controller.semanticClusters.map(
+              (cluster) => Card(
+                margin: const EdgeInsets.only(bottom: 12),
+                color: const Color(0xFFF5FBF8),
+                child: ListTile(
+                  leading: MediaThumbnailTile(
+                    item: cluster.representative,
+                    width: 56,
+                    height: 56,
+                    borderRadius: 14,
+                  ),
+                  title: Text(cluster.synthesisTitle),
+                  subtitle: Text(
+                    '${cluster.items.length} items • Avg ${Formatters.percent(cluster.averageScore)}',
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () {
+                    Get.to(
+                      () => MediaPreviewPage(
+                        item: cluster.representative,
+                        scoreLabel:
+                            'AI cluster avg ${Formatters.percent(cluster.averageScore)}',
+                      ),
+                    );
+                  },
+                ),
               ),
             ),
             const SizedBox(height: 20),
@@ -270,3 +325,4 @@ class DashboardPage extends GetView<ScanController> {
     );
   }
 }
+

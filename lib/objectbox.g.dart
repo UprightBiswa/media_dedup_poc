@@ -15,6 +15,7 @@ import 'package:objectbox/objectbox.dart' as obx;
 import 'package:objectbox_flutter_libs/objectbox_flutter_libs.dart';
 
 import 'features/media_scan/data/entities/media_item_entity.dart';
+import 'features/similarity/data/entities/embedding_record_entity.dart';
 import 'shared/entities/processing_job_entity.dart';
 
 export 'package:objectbox/objectbox.dart'; // so that callers only have to import this file
@@ -192,6 +193,71 @@ final _entities = <obx_int.ModelEntity>[
     relations: <obx_int.ModelRelation>[],
     backlinks: <obx_int.ModelBacklink>[],
   ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(3, 9106941712744833718),
+    name: 'EmbeddingRecordEntity',
+    lastPropertyId: const obx_int.IdUid(9, 1608853872542431893),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 3991245026936790795),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 7703852026995452385),
+        name: 'mediaPath',
+        type: 9,
+        flags: 2080,
+        indexId: const obx_int.IdUid(3, 4997245401148646447),
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 5183189523322837435),
+        name: 'contentVersionKey',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 521192060287760636),
+        name: 'modelName',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 3088277229197048446),
+        name: 'vectorDimension',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(6, 5050968818534773269),
+        name: 'embeddingJson',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(7, 1228191478813261104),
+        name: 'backend',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(8, 166916894239415987),
+        name: 'createdAtEpochMs',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(9, 1608853872542431893),
+        name: 'updatedAtEpochMs',
+        type: 6,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
 ];
 
 /// Shortcut for [obx.Store.new] that passes [getObjectBoxModel] and for Flutter
@@ -237,8 +303,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
     // Typically, this is done with `dart run build_runner build`.
     generatorVersion: obx_int.GeneratorVersion.v2025_12_16,
     entities: _entities,
-    lastEntityId: const obx_int.IdUid(2, 7354469289138532160),
-    lastIndexId: const obx_int.IdUid(2, 8364997570123008728),
+    lastEntityId: const obx_int.IdUid(3, 9106941712744833718),
+    lastIndexId: const obx_int.IdUid(3, 4997245401148646447),
     lastRelationId: const obx_int.IdUid(0, 0),
     lastSequenceId: const obx_int.IdUid(0, 0),
     retiredEntityUids: const [],
@@ -477,6 +543,92 @@ obx_int.ModelDefinition getObjectBoxModel() {
         return object;
       },
     ),
+    EmbeddingRecordEntity: obx_int.EntityDefinition<EmbeddingRecordEntity>(
+      model: _entities[2],
+      toOneRelations: (EmbeddingRecordEntity object) => [],
+      toManyRelations: (EmbeddingRecordEntity object) => {},
+      getId: (EmbeddingRecordEntity object) => object.id,
+      setId: (EmbeddingRecordEntity object, int id) {
+        object.id = id;
+      },
+      objectToFB: (EmbeddingRecordEntity object, fb.Builder fbb) {
+        final mediaPathOffset = fbb.writeString(object.mediaPath);
+        final contentVersionKeyOffset = fbb.writeString(
+          object.contentVersionKey,
+        );
+        final modelNameOffset = fbb.writeString(object.modelName);
+        final embeddingJsonOffset = fbb.writeString(object.embeddingJson);
+        final backendOffset = fbb.writeString(object.backend);
+        fbb.startTable(10);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, mediaPathOffset);
+        fbb.addOffset(2, contentVersionKeyOffset);
+        fbb.addOffset(3, modelNameOffset);
+        fbb.addInt64(4, object.vectorDimension);
+        fbb.addOffset(5, embeddingJsonOffset);
+        fbb.addOffset(6, backendOffset);
+        fbb.addInt64(7, object.createdAtEpochMs);
+        fbb.addInt64(8, object.updatedAtEpochMs);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final idParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          4,
+          0,
+        );
+        final mediaPathParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 6, '');
+        final contentVersionKeyParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 8, '');
+        final modelNameParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 10, '');
+        final vectorDimensionParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          12,
+          0,
+        );
+        final embeddingJsonParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 14, '');
+        final backendParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 16, '');
+        final createdAtEpochMsParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          18,
+          0,
+        );
+        final updatedAtEpochMsParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          20,
+          0,
+        );
+        final object = EmbeddingRecordEntity(
+          id: idParam,
+          mediaPath: mediaPathParam,
+          contentVersionKey: contentVersionKeyParam,
+          modelName: modelNameParam,
+          vectorDimension: vectorDimensionParam,
+          embeddingJson: embeddingJsonParam,
+          backend: backendParam,
+          createdAtEpochMs: createdAtEpochMsParam,
+          updatedAtEpochMs: updatedAtEpochMsParam,
+        );
+
+        return object;
+      },
+    ),
   };
 
   return obx_int.ModelDefinition(model, bindings);
@@ -611,4 +763,56 @@ class ProcessingJobEntity_ {
   static final updatedAtEpochMs = obx.QueryIntegerProperty<ProcessingJobEntity>(
     _entities[1].properties[7],
   );
+}
+
+/// [EmbeddingRecordEntity] entity fields to define ObjectBox queries.
+class EmbeddingRecordEntity_ {
+  /// See [EmbeddingRecordEntity.id].
+  static final id = obx.QueryIntegerProperty<EmbeddingRecordEntity>(
+    _entities[2].properties[0],
+  );
+
+  /// See [EmbeddingRecordEntity.mediaPath].
+  static final mediaPath = obx.QueryStringProperty<EmbeddingRecordEntity>(
+    _entities[2].properties[1],
+  );
+
+  /// See [EmbeddingRecordEntity.contentVersionKey].
+  static final contentVersionKey =
+      obx.QueryStringProperty<EmbeddingRecordEntity>(
+        _entities[2].properties[2],
+      );
+
+  /// See [EmbeddingRecordEntity.modelName].
+  static final modelName = obx.QueryStringProperty<EmbeddingRecordEntity>(
+    _entities[2].properties[3],
+  );
+
+  /// See [EmbeddingRecordEntity.vectorDimension].
+  static final vectorDimension =
+      obx.QueryIntegerProperty<EmbeddingRecordEntity>(
+        _entities[2].properties[4],
+      );
+
+  /// See [EmbeddingRecordEntity.embeddingJson].
+  static final embeddingJson = obx.QueryStringProperty<EmbeddingRecordEntity>(
+    _entities[2].properties[5],
+  );
+
+  /// See [EmbeddingRecordEntity.backend].
+  static final backend = obx.QueryStringProperty<EmbeddingRecordEntity>(
+    _entities[2].properties[6],
+  );
+
+  /// See [EmbeddingRecordEntity.createdAtEpochMs].
+  static final createdAtEpochMs =
+      obx.QueryIntegerProperty<EmbeddingRecordEntity>(
+        _entities[2].properties[7],
+      );
+
+  /// See [EmbeddingRecordEntity.updatedAtEpochMs].
+  static final updatedAtEpochMs =
+      obx.QueryIntegerProperty<EmbeddingRecordEntity>(
+        _entities[2].properties[8],
+      );
 }

@@ -1,4 +1,4 @@
-import 'dart:io';
+﻿import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:get/get.dart';
@@ -10,6 +10,18 @@ enum EmbeddingBackend {
   unknown,
   nativeMediaPipe,
   heuristicFallback,
+}
+
+class EmbeddingPayload {
+  const EmbeddingPayload({
+    required this.vector,
+    required this.backend,
+    required this.modelName,
+  });
+
+  final List<double> vector;
+  final EmbeddingBackend backend;
+  final String modelName;
 }
 
 class EmbeddingService {
@@ -33,6 +45,9 @@ class EmbeddingService {
     }
     return 'Unknown';
   }
+
+  String get preferredModelName =>
+      _isNativeModelReady == true ? modelName : fallbackModelName;
 
   String get backendDiagnostics {
     final parts = <String>[];
@@ -75,15 +90,25 @@ class EmbeddingService {
   }
 
   Future<MediaItem> enrich(MediaItem item) async {
+    final payload = await buildEmbedding(item);
+    return item.copyWith(
+      embedding: payload.vector,
+      analysisStatus:
+          payload.vector.isEmpty ? AnalysisStatus.failed : AnalysisStatus.embedded,
+    );
+  }
+
+  Future<EmbeddingPayload> buildEmbedding(MediaItem item) async {
     if (Platform.isAndroid) {
       try {
         final nativeEmbedding = await _getNativeEmbedding(item.path);
         if (nativeEmbedding.isNotEmpty) {
           _nativeSuccessCount.value++;
           _backend.value = EmbeddingBackend.nativeMediaPipe;
-          return item.copyWith(
-            embedding: nativeEmbedding,
-            analysisStatus: AnalysisStatus.embedded,
+          return EmbeddingPayload(
+            vector: nativeEmbedding,
+            backend: EmbeddingBackend.nativeMediaPipe,
+            modelName: modelName,
           );
         }
       } on PlatformException catch (error) {
@@ -94,7 +119,11 @@ class EmbeddingService {
     final bytes = await File(item.path).readAsBytes();
     final source = img.decodeImage(bytes);
     if (source == null) {
-      return item.copyWith(analysisStatus: AnalysisStatus.failed);
+      return const EmbeddingPayload(
+        vector: <double>[],
+        backend: EmbeddingBackend.unknown,
+        modelName: fallbackModelName,
+      );
     }
 
     final embedding = _buildHeuristicEmbedding(source);
@@ -102,9 +131,10 @@ class EmbeddingService {
     if (_nativeSuccessCount.value == 0) {
       _backend.value = EmbeddingBackend.heuristicFallback;
     }
-    return item.copyWith(
-      embedding: embedding,
-      analysisStatus: AnalysisStatus.embedded,
+    return EmbeddingPayload(
+      vector: embedding,
+      backend: EmbeddingBackend.heuristicFallback,
+      modelName: fallbackModelName,
     );
   }
 
@@ -162,3 +192,4 @@ class EmbeddingService {
     return dot / (math.sqrt(magA) * math.sqrt(magB));
   }
 }
+

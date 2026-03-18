@@ -1,4 +1,4 @@
-import 'dart:math' as math;
+﻿import 'dart:math' as math;
 
 import 'package:media_dedup_poc/core/constants/analysis_defaults.dart';
 import 'package:media_dedup_poc/features/dedup/data/services/hash_service.dart';
@@ -52,7 +52,6 @@ class SimilarityService {
               score: score.clamp(0, 1),
             ),
           );
-          continue;
         }
 
         final semanticScore = _embeddingService.cosineSimilarity(left.embedding, right.embedding);
@@ -72,3 +71,4 @@ class SimilarityService {
     return edges;
   }
 }
+

@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 
 import 'package:get/get.dart';
 import 'package:media_dedup_poc/core/database/repositories/processing_job_repository.dart';
@@ -11,6 +11,7 @@ import 'package:media_dedup_poc/features/media_scan/data/services/file_scan_serv
 import 'package:media_dedup_poc/features/media_scan/data/services/thumbnail_cache_service.dart';
 import 'package:media_dedup_poc/features/media_scan/domain/models/media_item.dart';
 import 'package:media_dedup_poc/features/permissions/data/services/media_permission_service.dart';
+import 'package:media_dedup_poc/features/similarity/data/repositories/embedding_repository.dart';
 import 'package:media_dedup_poc/features/similarity/data/services/cluster_service.dart';
 import 'package:media_dedup_poc/features/similarity/data/services/embedding_service.dart';
 import 'package:media_dedup_poc/features/similarity/data/services/similarity_service.dart';
@@ -27,6 +28,7 @@ class ProcessingOrchestrator extends GetxService {
     required MediaRepository mediaRepository,
     required ProcessingJobRepository processingJobRepository,
     required HashService hashService,
+    required EmbeddingRepository embeddingRepository,
     required EmbeddingService embeddingService,
     required SimilarityService similarityService,
     required ClusterService clusterService,
@@ -38,6 +40,7 @@ class ProcessingOrchestrator extends GetxService {
         _mediaRepository = mediaRepository,
         _processingJobRepository = processingJobRepository,
         _hashService = hashService,
+        _embeddingRepository = embeddingRepository,
         _embeddingService = embeddingService,
         _similarityService = similarityService,
         _clusterService = clusterService;
@@ -50,6 +53,7 @@ class ProcessingOrchestrator extends GetxService {
   final MediaRepository _mediaRepository;
   final ProcessingJobRepository _processingJobRepository;
   final HashService _hashService;
+  final EmbeddingRepository _embeddingRepository;
   final EmbeddingService _embeddingService;
   final SimilarityService _similarityService;
   final ClusterService _clusterService;
@@ -165,10 +169,12 @@ class ProcessingOrchestrator extends GetxService {
         scanned,
         sourceRoot: selectedSource,
       );
+      final validPaths = persistedScanned.map((item) => item.path).toSet();
       await _mediaRepository.removeMissingItems(
         selectedSource,
-        persistedScanned.map((item) => item.path).toSet(),
+        validPaths,
       );
+      await _embeddingRepository.removeMissing(validPaths);
       final thumbnailReady = <MediaItem>[];
       _setJob(
         currentJob.value.copyWith(
@@ -214,15 +220,33 @@ class ProcessingOrchestrator extends GetxService {
       );
 
       final embedded = <MediaItem>[];
-      final pendingEmbeddings =
-          await _mediaRepository.fetchPendingEmbeddingItems(selectedSource);
-      final reusableEmbeddings = hashed
-          .where((item) => item.embedding.isNotEmpty)
-          .toList(growable: false);
-      for (final item in pendingEmbeddings) {
-        embedded.add(await _embeddingService.enrich(item));
+      for (final item in hashed) {
+        final cachedVector = _embeddingRepository.findCachedVector(
+          item,
+          preferredModelName: _embeddingService.preferredModelName,
+        );
+        if (cachedVector != null && cachedVector.isNotEmpty) {
+          embedded.add(
+            item.copyWith(
+              embedding: cachedVector,
+              analysisStatus: AnalysisStatus.embedded,
+            ),
+          );
+          continue;
+        }
+
+        final payload = await _embeddingService.buildEmbedding(item);
+        final embeddedItem = item.copyWith(
+          embedding: payload.vector,
+          analysisStatus: payload.vector.isEmpty
+              ? AnalysisStatus.failed
+              : AnalysisStatus.embedded,
+        );
+        if (payload.vector.isNotEmpty) {
+          await _embeddingRepository.saveEmbedding(item, payload);
+        }
+        embedded.add(embeddedItem);
       }
-      embedded.addAll(reusableEmbeddings);
       await _mediaRepository.saveAnalysisResults(embedded);
 
       _setJob(
@@ -269,6 +293,12 @@ class ProcessingOrchestrator extends GetxService {
     return currentJob.value.clusters.where((cluster) => cluster.clusterType == type).length;
   }
 
+  List<SimilarityCluster> clustersByType(SimilarityType type) {
+    return currentJob.value.clusters
+        .where((cluster) => cluster.clusterType == type)
+        .toList(growable: false);
+  }
+
   int get potentialSavingsBytes {
     return currentJob.value.clusters.fold<int>(
       0,
@@ -289,3 +319,5 @@ class ProcessingOrchestrator extends GetxService {
     unawaited(_processingJobRepository.save(job));
   }
 }
+
+
